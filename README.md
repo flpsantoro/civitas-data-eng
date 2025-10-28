@@ -48,7 +48,7 @@ civitas-data-eng/
 
 ### Pré-requisitos
 
-- Python 3.10
+- **Python 3.10** (exatamente - Prefect 1.4.1 não suporta 3.11+)
 - Docker e Docker Compose
 - Google Cloud SDK (gcloud CLI)
 - Conta no Google Cloud Platform

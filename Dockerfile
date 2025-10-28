@@ -3,6 +3,7 @@ FROM python:3.10-slim
 # Metadados
 LABEL maintainer="Data Engineer Challenge"
 LABEL description="Pipeline BRT - CIVITAS"
+# Nota: Python 3.10 é a última versão compatível com Prefect 1.4.1
 
 # Variáveis de ambiente
 ENV PYTHONUNBUFFERED=1 \

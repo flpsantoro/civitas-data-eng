@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Postgres database for Prefect Server
   postgres:
-    image: postgres:13
+    image: postgres:16
     container_name: prefect-postgres
     environment:
       POSTGRES_USER: prefect
