@@ -5,92 +5,91 @@
 - ✅ Estrutura organizada (padrão pipelines_rj_civitas)
 - ✅ Credenciais GCP em `credentials/civitas-data-eng-8feab1c31a9a.json`
 - ✅ `.env` configurado corretamente
-- ✅ Poetry para gerenciamento de dependências
-- ✅ Docker Compose para ambiente local
+- ✅ Docker com Poetry + Google Cloud SDK
+- ✅ Scripts de automação (`run.ps1` / `Makefile`)
 
-## 🚀 Para Rodar o Pipeline
+## 🚀 Setup Completo (Um Comando!)
 
-### 1. Criar Recursos no GCP
+### Pré-requisito
 
-```bash
-# Verificar se está no projeto correto
-gcloud config get-value project  # Deve retornar: civitas-data-eng
+✅ **Docker Desktop** instalado e rodando
 
-# Criar bucket GCS
-gsutil mb -l us-east1 gs://civitas-brt-data
+### Executar Setup
 
-# Criar datasets BigQuery
-bq mk --dataset --location=us-east1 civitas-data-eng:brt_raw
-bq mk --dataset --location=us-east1 civitas-data-eng:brt_staging
-bq mk --dataset --location=us-east1 civitas-data-eng:brt_gold
+```powershell
+# Windows
+.\run.ps1 setup
 ```
 
-### 2. Validar Permissões
-
-```bash
-# Ver permissões da service account
-gcloud projects get-iam-policy civitas-data-eng \
-  --flatten="bindings[].members" \
-  --filter="bindings.members:serviceAccount:civitas@civitas-data-eng.iam.gserviceaccount.com" \
-  --format="table(bindings.role)"
+```bash  
+# Linux/Mac
+make setup
 ```
 
-Se necessário, adicione as roles (ver `credentials/README.md`)
+**O que esse comando faz:**
 
-### 3. Validar Ambiente
+1. 🔨 Build das imagens Docker (Poetry + Google Cloud SDK inclusos)
+2. 🚀 Sobe Prefect Server + Agent + PostgreSQL
+3. 🪣 Cria bucket GCS: `gs://civitas-brt-data`
+4. 📊 Cria datasets BigQuery: `brt_raw`, `brt_staging`, `brt_gold`
+5. ✅ Valida todo ambiente (credenciais, recursos, conexões)
+6. 📝 Registra flows no Prefect Server
 
-```bash
-# Instalar dependências
-poetry install
+### Acessar UI
 
-# Executar validação completa
-poetry run python scripts/validate_environment.py
+Após o setup: **http://localhost:8080**
+
+## 📋 Comandos Úteis
+
+### Controle de Serviços
+
+```powershell
+# Windows
+.\run.ps1 up           # Subir serviços
+.\run.ps1 down         # Parar serviços
+.\run.ps1 restart      # Reiniciar serviços
+.\run.ps1 logs         # Ver logs em tempo real
+
+# Linux/Mac
+make up
+make down
+make restart
+make logs
 ```
 
-Este script valida automaticamente:
-- Variáveis de ambiente
-- Credenciais GCP
-- Bucket GCS
-- Datasets BigQuery
-- Prefect Server
+### Scripts Utilitários
 
-Se tudo estiver OK, prossiga para o próximo passo.
+```powershell
+# Windows
+.\run.ps1 test         # Testar API do BRT
+.\run.ps1 validate     # Validar ambiente completo
+.\run.ps1 register     # Registrar flows
+.\run.ps1 shell        # Abrir shell no container
 
-### 4. Testar Conexão
-
-```bash
-# Testar API BRT
-poetry run python scripts/test_brt_api.py
-
-# Deve retornar JSON com dados de ônibus
+# Linux/Mac
+make test
+make validate
+make register
+make shell
 ```
 
-### 5. Subir Prefect
+### Comandos GCP (dentro do Docker)
 
-```bash
-# Subir servidor e agent
-docker compose -f docker/docker-compose.yml up -d
+Todos os comandos GCP rodam dentro do container com as credenciais já configuradas:
 
-# Verificar logs
-docker compose -f docker/docker-compose.yml logs -f
+```powershell
+# Windows
+.\run.ps1 gcloud config get-value project
+.\run.ps1 gsutil ls gs://civitas-brt-data
+.\run.ps1 bq ls civitas-data-eng:brt_raw
+.\run.ps1 dbt debug
+
+# Linux/Mac
+make gcloud ARGS="config get-value project"
+make gsutil ARGS="ls gs://civitas-brt-data"
+make bq ARGS="ls civitas-data-eng:brt_raw"
+make dbt ARGS="debug"
 ```
-
-### 6. Registrar Flow
-
-```bash
-# Instalar dependências
-poetry install
-
-# Registrar flow no Prefect
-poetry run python scripts/register_flows.py
-```
-
-### 7. Acessar UI
-
-Abra: http://localhost:8080
-
-- Você verá o flow "brt-extract-load" registrado
-- Pode executar manualmente ou aguardar o schedule
 
 ## 📊 Implementar Transformações DBT
 

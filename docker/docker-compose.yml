@@ -1,9 +1,10 @@
 version: '3.8'
 
 services:
+  # Banco de dados do Prefect
   postgres:
     image: postgres:16
-    container_name: prefect-postgres
+    container_name: civitas-postgres
     environment:
       POSTGRES_USER: prefect
       POSTGRES_PASSWORD: prefect
@@ -20,9 +21,10 @@ services:
       timeout: 5s
       retries: 5
 
+  # Prefect Server (UI + API)
   prefect-server:
     image: prefecthq/prefect:1.4.1-python3.10
-    container_name: prefect-server
+    container_name: civitas-prefect-server
     command: prefect server start --host 0.0.0.0
     environment:
       PREFECT__SERVER__DATABASE__CONNECTION_URL: postgresql://prefect:prefect@postgres:5432/prefect
@@ -37,21 +39,50 @@ services:
     volumes:
       - prefect-data:/root/.prefect
 
+  # Prefect Agent (executa flows)
   prefect-agent:
-    image: prefecthq/prefect:1.4.1-python3.10
-    container_name: prefect-agent
-    command: prefect agent docker start --label civitas --api http://prefect-server:4200
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: agent
+    container_name: civitas-prefect-agent
     environment:
       PREFECT__CLOUD__API: http://prefect-server:4200
       PREFECT__CLOUD__AGENT__LABELS: '["civitas"]'
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/civitas-data-eng-8feab1c31a9a.json
+    env_file:
+      - ../.env
     depends_on:
       - prefect-server
     networks:
       - prefect
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ../credentials:/app/credentials:ro
+      - ../data:/app/data
       - prefect-data:/root/.prefect
     restart: unless-stopped
+
+  # CLI utilitário (scripts)
+  cli:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: cli
+    container_name: civitas-cli
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/civitas-data-eng-8feab1c31a9a.json
+    env_file:
+      - ../.env
+    networks:
+      - prefect
+    volumes:
+      - ../credentials:/app/credentials:ro
+      - ../data:/app/data
+      - ../queries:/app/queries
+    profiles:
+      - tools
+    command: /bin/bash
 
 networks:
   prefect:

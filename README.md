@@ -10,133 +10,122 @@ Pipeline de ELT para captura de dados GPS do BRT usando Prefect 1.4.1 e DBT.
 - Google Cloud (BigQuery + Storage)
 - Docker + Docker Compose
 
-## Configuração Inicial
+## 🚀 Quick Start (Um Comando!)
 
-### 1. Credenciais GCP
+### Pré-requisito
 
-**Opção A: Service Account (Já configurado)**
+- Docker Desktop instalado e rodando
+- Arquivo `.env` configurado (já está!)
+- Credenciais GCP em `credentials/` (já está!)
 
-Você já tem o arquivo JSON em `credentials/civitas-data-eng-8feab1c31a9a.json`. O `.env` está pronto.
+### Setup Completo
 
-Valide as permissões necessárias:
-```bash
-# A service account precisa das roles:
-# - BigQuery Admin (ou Data Editor + Job User)
-# - Storage Admin (ou Object Admin)
+```powershell
+# Windows
+.\run.ps1 setup
 ```
 
-**Opção B: OAuth (Alternativa)**
-
-Se preferir usar sua conta pessoal:
 ```bash
-# 1. Autenticar
-gcloud auth application-default login
-
-# 2. Editar .env e comentar GOOGLE_APPLICATION_CREDENTIALS
-# GOOGLE_APPLICATION_CREDENTIALS=credentials/civitas-data-eng-8feab1c31a9a.json
+# Linux/Mac
+make setup
 ```
 
-### 2. Configurar GCP Resources
+**Isso fará:**
+1. ✅ Build das imagens Docker com Poetry + Google Cloud SDK
+2. ✅ Subir Prefect Server + Agent + PostgreSQL
+3. ✅ Criar bucket GCS e datasets BigQuery
+4. ✅ Validar todo ambiente
+5. ✅ Registrar flows no Prefect
 
-```bash
-# Definir projeto
-gcloud config set project civitas-data-eng
+**Acesse:** http://localhost:8080
 
-# Criar bucket (ajuste o nome se necessário)
-gsutil mb -l us-east1 gs://civitas-brt-data
+## 📋 Comandos Disponíveis
 
-# Criar datasets BigQuery
-bq mk --dataset --location=us-east1 civitas-data-eng:brt_raw
-bq mk --dataset --location=us-east1 civitas-data-eng:brt_staging
-bq mk --dataset --location=us-east1 civitas-data-eng:brt_gold
+### Windows (PowerShell)
+
+```powershell
+.\run.ps1 help          # Ver todos comandos
+.\run.ps1 up            # Subir serviços
+.\run.ps1 test          # Testar API BRT
+.\run.ps1 validate      # Validar ambiente
+.\run.ps1 shell         # Shell no container
+.\run.ps1 logs          # Ver logs
+.\run.ps1 down          # Parar tudo
 ```
 
-### 3. Configurar DBT
+### Linux/Mac (Makefile)
 
 ```bash
-# Copiar profile de exemplo
-cp queries/profiles.yml.example ~/.dbt/profiles.yml
-
-# Editar ~/.dbt/profiles.yml
-# Como você usa service account, o method já é correto (oauth)
-# O DBT vai usar automaticamente GOOGLE_APPLICATION_CREDENTIALS do .env
+make help               # Ver todos comandos
+make up                 # Subir serviços
+make test               # Testar API BRT
+make validate           # Validar ambiente
+make shell              # Shell no container
+make logs               # Ver logs
+make down               # Parar tudo
 ```
 
-## Execução
+## 🔧 Comandos GCP (dentro do Docker)
 
-### Validar Ambiente
+```powershell
+# Windows
+.\run.ps1 gcloud auth list
+.\run.ps1 gsutil ls
+.\run.ps1 bq ls civitas-data-eng:brt_raw
+.\run.ps1 dbt debug
 
-Antes de tudo, valide se está tudo configurado:
-
-```bash
-# Instalar dependências
-poetry install
-
-# Validar ambiente completo
-poetry run python scripts/validate_environment.py
+# Linux/Mac
+make gcloud ARGS="auth list"
+make gsutil ARGS="ls"
+make bq ARGS="ls civitas-data-eng:brt_raw"
+make dbt ARGS="debug"
 ```
 
-O script verifica:
-- ✅ Variáveis de ambiente (.env)
-- ✅ Credenciais GCP
-- ✅ Bucket GCS existe
-- ✅ Datasets BigQuery existem
-- ✅ Prefect Server acessível
-
-### Opção 1: Com Docker (Recomendado)
-
-```bash
-# Subir Prefect Server
-docker compose -f docker/docker-compose.yml up -d
-
-# Instalar dependências localmente (para registro)
-poetry install
-
-# Registrar flow
-poetry run python scripts/register_flows.py
-
-# Acessar UI
-http://localhost:8080
-```
-
-### Opção 2: Local (Desenvolvimento)
-
-```bash
-# Instalar
-poetry install
-
-# Terminal 1: Prefect Server
-poetry run prefect backend server
-poetry run prefect server start
-
-# Terminal 2: Agent
-poetry run prefect agent local start --label civitas
-
-# Terminal 3: Registrar
-poetry run python scripts/register_flows.py
-```
-
-## Estrutura
+## 📁 Estrutura
 
 ```
 docker/                # Configurações Docker
-  docker-compose.yml   # Stack completa (Prefect + PostgreSQL)
-  Dockerfile           # Build da imagem
+  docker-compose.yml   # Stack completa
+  Dockerfile           # Imagem com Poetry + gcloud
 
 scripts/               # Utilitários
   test_brt_api.py     # Testar API BRT
   validate_environment.py  # Validar setup
-  register_flows.py   # Registrar flows no Prefect
+  register_flows.py   # Registrar flows
 
 pipelines/             # Código Prefect
   brt/extract_load/
     tasks.py          # Captura, CSV, Upload
     flows.py          # Orquestração
     schedules.py      # Agendamentos
-  flows.py            # Registro central
 
 queries/              # DBT (Bronze → Silver → Gold)
   models/
   macros/
-  seeds/
+  
+run.ps1               # Script PowerShell (Windows)
+Makefile              # Make commands (Linux/Mac)
+```
+
+## 🐛 Troubleshooting
+
+### Erro de permissões GCP
+
+```powershell
+# Autenticar no container
+.\run.ps1 shell
+gcloud auth login
+gcloud auth application-default login
+```
+
+### Reconstruir imagens
+
+```powershell
+.\run.ps1 build
+```
+
+### Limpar tudo
+
+```powershell
+.\run.ps1 clean
 ```
