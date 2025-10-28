@@ -106,8 +106,27 @@ Em um terminal:
 # Subir Prefect Server e Agent com Docker
 docker-compose up -d
 
+# Verificar status
+docker-compose ps
+
+# Ver logs
+docker-compose logs -f prefect-server
+
 # Acessar UI
 # http://localhost:8080
+```
+
+### Testar API do BRT (Opcional)
+
+Antes de executar o flow, teste a API:
+
+```bash
+# Ativar ambiente virtual
+.\venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
+
+# Testar API
+python test_brt_api.py
 ```
 
 ### Registrar e Executar Flow
@@ -123,10 +142,22 @@ source venv/bin/activate  # Linux/Mac
 prefect create project desafio-civitas
 
 # Registrar flow
+python register_flows.py
+
+# OU registrar manualmente
 prefect register --project desafio-civitas -m pipelines.brt.extract_load.flows
 
 # Executar flow via UI ou CLI
-prefect run flow --name "BRT: Extract and Load"
+prefect run flow --name "BRT: Extract and Load GPS Data" --project desafio-civitas
+```
+
+### Executar Flow Localmente (Teste)
+
+Para testar sem o Prefect Server:
+
+```bash
+cd pipelines/brt/extract_load
+python flows.py
 ```
 
 ### Executar Transformações DBT
