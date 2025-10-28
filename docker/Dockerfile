@@ -35,17 +35,19 @@ WORKDIR /app
         curl -sSL https://install.python-poetry.org | python3 - && \
         # Limpar
         apt-get clean && \
-        rm -rf /var/lib/apt/lists/*# Copiar arquivos de dependências
-COPY ../pyproject.toml ../poetry.lock* ./
+        rm -rf /var/lib/apt/lists/*
+
+# Copiar arquivos de dependências
+COPY pyproject.toml poetry.lock* ./
 
 # Instalar dependências Python
 RUN poetry install --no-root --no-dev
 
 # Copiar código
-COPY ../pipelines/ ./pipelines/
-COPY ../queries/ ./queries/
-COPY ../scripts/ ./scripts/
-COPY ../.env* ./
+COPY pipelines/ ./pipelines/
+COPY queries/ ./queries/
+COPY scripts/ ./scripts/
+COPY .env* ./
 
 # Criar diretórios
 RUN mkdir -p data logs credentials
