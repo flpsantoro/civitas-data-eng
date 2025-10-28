@@ -225,7 +225,3 @@ data/*.parquet
 # Google Cloud credentials
 credentials/
 service-account*.json
-
-# Config
-config/*.json
-!config/.gitkeep

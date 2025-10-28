@@ -12,45 +12,54 @@ Pipeline de ELT para captura de dados GPS do BRT usando Prefect 1.4.1 e DBT.
 
 ## Configuração Inicial
 
-### 1. Configurar GCP
+### 1. Credenciais GCP
 
+**Opção A: Service Account (Já configurado)**
+
+Você já tem o arquivo JSON em `credentials/civitas-data-eng-8feab1c31a9a.json`. O `.env` está pronto.
+
+Valide as permissões necessárias:
 ```bash
-# Autenticar
+# A service account precisa das roles:
+# - BigQuery Admin (ou Data Editor + Job User)
+# - Storage Admin (ou Object Admin)
+```
+
+**Opção B: OAuth (Alternativa)**
+
+Se preferir usar sua conta pessoal:
+```bash
+# 1. Autenticar
 gcloud auth application-default login
 
-# Definir projeto
-gcloud config set project SEU_PROJECT_ID
-
-# Criar bucket
-gsutil mb gs://SEU_BUCKET_NAME
+# 2. Editar .env e comentar GOOGLE_APPLICATION_CREDENTIALS
+# GOOGLE_APPLICATION_CREDENTIALS=credentials/civitas-data-eng-8feab1c31a9a.json
 ```
 
-### 2. Configurar .env
-
-Copie `.env.example` para `.env` e ajuste:
+### 2. Configurar GCP Resources
 
 ```bash
-cp .env.example .env
-```
+# Definir projeto
+gcloud config set project civitas-data-eng
 
-Edite `.env` com seus valores:
-```env
-GCP_PROJECT_ID=seu-projeto-id
-GCS_BUCKET_NAME=seu-bucket-brt
-```
+# Criar bucket (ajuste o nome se necessário)
+gsutil mb -l us-east1 gs://civitas-brt-data
 
-Se usar service account, descomente e configure:
-```env
-GOOGLE_APPLICATION_CREDENTIALS=credentials/seu-arquivo.json
+# Criar datasets BigQuery
+bq mk --dataset --location=us-east1 civitas-data-eng:brt_raw
+bq mk --dataset --location=us-east1 civitas-data-eng:brt_staging
+bq mk --dataset --location=us-east1 civitas-data-eng:brt_gold
 ```
 
 ### 3. Configurar DBT
 
 ```bash
-# Copiar profiles
+# Copiar profile de exemplo
 cp queries/profiles.yml.example ~/.dbt/profiles.yml
 
-# Editar com seu project_id se necessário
+# Editar ~/.dbt/profiles.yml
+# Como você usa service account, o method já é correto (oauth)
+# O DBT vai usar automaticamente GOOGLE_APPLICATION_CREDENTIALS do .env
 ```
 
 ## Execução
