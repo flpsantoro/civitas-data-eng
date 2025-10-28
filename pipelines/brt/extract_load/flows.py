@@ -26,9 +26,7 @@ logger = get_logger()
 
 # Configuração do Flow
 with Flow(
-    name="BRT: Extract and Load GPS Data",
-    description="Pipeline de captura minuto a minuto de dados GPS do BRT, "
-                "geração de CSV (10 minutos) e upload para GCS"
+    name="BRT: Extract and Load GPS Data"
 ) as brt_extract_load_flow:
     
     # =========================================================================

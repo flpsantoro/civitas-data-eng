@@ -47,13 +47,20 @@ def fetch_brt_gps_data(api_url: str) -> List[Dict]:
         # Adicionar timestamp da captura
         timestamp_captura = datetime.now().isoformat()
         
-        if isinstance(data, list):
+        # Verificar se retornou objeto com chave "veiculos"
+        if isinstance(data, dict) and 'veiculos' in data:
+            veiculos = data['veiculos']
+            for record in veiculos:
+                record['timestamp_captura'] = timestamp_captura
+            logger.info(f"✅ Capturados {len(veiculos)} registros de veículos")
+            return veiculos
+        elif isinstance(data, list):
             for record in data:
                 record['timestamp_captura'] = timestamp_captura
             logger.info(f"✅ Capturados {len(data)} registros de veículos")
             return data
         else:
-            logger.warning("⚠️ Formato inesperado da API. Retornando lista vazia.")
+            logger.warning(f"⚠️ Formato inesperado da API. Tipo: {type(data)}")
             return []
             
     except requests.RequestException as e:
