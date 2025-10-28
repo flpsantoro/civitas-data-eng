@@ -1,212 +1,54 @@
 # Desafio Técnico - Data Engineer CIVITAS
 
-Pipeline de ELT para captura, armazenamento e transformação de dados da API de GPS do BRT.
+Pipeline de ELT para captura de dados GPS do BRT usando Prefect 1.4.1 e DBT.
 
-## 📋 Sobre o Projeto
+## Stack
 
-Este projeto implementa uma solução de dados que:
+- Python 3.10
+- Prefect 1.4.1
+- DBT 1.5.0
+- Google Cloud (BigQuery + Storage)
+- Docker
 
-- **Extrai** dados da API de GPS do BRT minuto a minuto
-- **Carrega** arquivos CSV (10 minutos de dados) no Google Cloud Storage
-- **Transforma** dados seguindo a arquitetura Medallion (Bronze → Silver → Gold) usando DBT
-- **Orquestra** todo o processo com Prefect v1.4.1
-
-## 🏗️ Arquitetura
-
-### Stack Tecnológica
-
-- **Python 3.10**: Linguagem principal
-- **Prefect 1.4.1**: Orquestração de workflows
-- **DBT**: Transformação de dados no BigQuery
-- **Google BigQuery**: Data warehouse
-- **Google Cloud Storage**: Armazenamento de objetos
-- **Docker**: Containerização
-
-### Estrutura do Repositório
-
-```
-civitas-data-eng/
-├── pipelines/              # Código dos pipelines Prefect
-│   ├── brt/               # Pipeline de captura do BRT
-│   │   ├── extract_load/  # Flow de extração e carga
-│   │   └── ...
-│   ├── constants.py       # Constantes globais
-│   └── utils/             # Utilitários compartilhados
-├── dbt/                   # Projeto DBT (queries)
-│   ├── models/            # Modelos de transformação
-│   ├── macros/            # Macros reutilizáveis
-│   └── dbt_project.yml    # Configuração DBT
-├── config/                # Arquivos de configuração
-├── data/                  # Dados locais (CSV gerados)
-├── .env.example           # Template de variáveis de ambiente
-├── docker-compose.yml     # Configuração Prefect Server
-├── Dockerfile             # Container para execução dos flows
-└── requirements.txt       # Dependências Python
-```
-
-## 🚀 Setup do Ambiente
-
-### Pré-requisitos
-
-- **Python 3.10** (exatamente - Prefect 1.4.1 não suporta 3.11+)
-- Docker e Docker Compose
-- Google Cloud SDK (gcloud CLI)
-- Conta no Google Cloud Platform
-
-### 1. Clonar o Repositório
+## Setup Rápido
 
 ```bash
-git clone <seu-repositorio>
-cd civitas-data-eng
-```
+# 1. Setup automático (credenciais GCP + .env)
+python setup.py
 
-### 2. Configurar Variáveis de Ambiente
+# 2. Instalar dependências
+poetry install
 
-```bash
-cp .env.example .env
-# Edite o arquivo .env com suas credenciais
-```
-
-### 3. Instalar Dependências
-
-```bash
-# Criar ambiente virtual
-python -m venv venv
-
-# Ativar ambiente virtual
-# Windows:
-.\venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-
-# Instalar dependências
-pip install -r requirements.txt
-```
-
-### 4. Configurar Google Cloud
-
-```bash
-# Autenticar
-gcloud auth login
-
-# Definir projeto
-gcloud config set project SEU_PROJECT_ID
-
-# Criar bucket (se necessário)
-gsutil mb gs://SEU_BUCKET_NAME
-```
-
-## 🏃 Como Executar
-
-### Iniciar Prefect Server
-
-Em um terminal:
-
-```bash
-# Subir Prefect Server e Agent com Docker
+# 3. Subir Prefect
 docker-compose up -d
 
-# Verificar status
-docker-compose ps
+# 4. Testar API
+poetry run python test_brt_api.py
 
-# Ver logs
-docker-compose logs -f prefect-server
+# 5. Registrar flow
+poetry run python register_flows.py
 
-# Acessar UI
+# 6. Acessar UI
 # http://localhost:8080
 ```
 
-### Testar API do BRT (Opcional)
+## Arquitetura
 
-Antes de executar o flow, teste a API:
-
-```bash
-# Ativar ambiente virtual
-.\venv\Scripts\activate  # Windows
-source venv/bin/activate  # Linux/Mac
-
-# Testar API
-python test_brt_api.py
+```
+API BRT → Captura minuto a minuto → CSV (10min) → GCS → BigQuery
+                                                     ↓
+                                                   DBT (Bronze → Silver → Gold)
 ```
 
-### Registrar e Executar Flow
+## Estrutura
 
-Em outro terminal:
-
-```bash
-# Ativar ambiente virtual
-.\venv\Scripts\activate  # Windows
-source venv/bin/activate  # Linux/Mac
-
-# Criar projeto (primeira vez)
-prefect create project desafio-civitas
-
-# Registrar flow
-python register_flows.py
-
-# OU registrar manualmente
-prefect register --project desafio-civitas -m pipelines.brt.extract_load.flows
-
-# Executar flow via UI ou CLI
-prefect run flow --name "BRT: Extract and Load GPS Data" --project desafio-civitas
 ```
+pipelines/brt/extract_load/
+  ├── tasks.py      # Captura, CSV, Upload
+  ├── flows.py      # Orquestração
+  └── schedules.py  # Agendamentos
 
-### Executar Flow Localmente (Teste)
-
-Para testar sem o Prefect Server:
-
-```bash
-cd pipelines/brt/extract_load
-python flows.py
+dbt/
+  ├── models/       # Transformações SQL
+  └── profiles.yml  # Config BigQuery
 ```
-
-### Executar Transformações DBT
-
-```bash
-cd dbt
-
-# Executar todos os modelos
-dbt run
-
-# Executar testes
-dbt test
-
-# Gerar documentação
-dbt docs generate
-dbt docs serve
-```
-
-## 📊 Arquitetura Medallion
-
-- **Bronze (Raw)**: Dados brutos da API salvos no GCS e carregados como tabela externa no BigQuery
-- **Silver (Staging)**: Dados limpos e padronizados
-- **Gold (Marts)**: Dados agregados e prontos para análise
-
-## 🧪 Testes
-
-```bash
-# Testes de qualidade de dados no DBT
-cd dbt
-dbt test
-
-# Testes específicos
-dbt test --select brt_staging
-```
-
-## 📝 Conventional Commits
-
-Este projeto segue o padrão [Conventional Commits](https://www.conventionalcommits.org/pt-br/):
-
-- `feat:` Nova funcionalidade
-- `fix:` Correção de bug
-- `docs:` Documentação
-- `chore:` Tarefas de manutenção
-- `refactor:` Refatoração de código
-- `test:` Adição/modificação de testes
-
-## 📚 Referências
-
-- [Documentação Prefect v1](https://docs-v1.prefect.io/)
-- [Documentação DBT](https://docs.getdbt.com/)
-- [API do BRT](https://www.data.rio/documents/PCRJ::transporte-rodovi%C3%A1rio-api-de-gps-do-brt/about)
-- [Pipelines rj-civitas](https://github.com/prefeitura-rio/pipelines_rj_civitas/)
