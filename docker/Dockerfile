@@ -17,28 +17,25 @@ ENV PATH="$POETRY_HOME/bin:/app/scripts:$PATH"
 
 WORKDIR /app
 
-# Instalar dependências do sistema + Google Cloud SDK
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        curl \
-        gnupg \
-        apt-transport-https \
-        ca-certificates \
-        lsb-release && \
-    # Instalar Google Cloud SDK
-    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | \
-        tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
-    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
-        apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - && \
-    apt-get update && \
-    apt-get install -y google-cloud-cli && \
-    # Instalar Poetry
-    curl -sSL https://install.python-poetry.org | python3 - && \
-    # Limpar
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copiar arquivos de dependências
+    # Instalar dependências do sistema + Google Cloud SDK
+    RUN apt-get update && \
+        apt-get install -y --no-install-recommends \
+            curl \
+            gnupg \
+            apt-transport-https \
+            ca-certificates && \
+        # Instalar Google Cloud SDK (método moderno - sem apt-key)
+        echo "deb [signed-by=/usr/share/keyrings/cloud.google.asc] https://packages.cloud.google.com/apt cloud-sdk main" | \
+            tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
+            gpg --dearmor -o /usr/share/keyrings/cloud.google.asc && \
+        apt-get update && \
+        apt-get install -y google-cloud-cli && \
+        # Instalar Poetry
+        curl -sSL https://install.python-poetry.org | python3 - && \
+        # Limpar
+        apt-get clean && \
+        rm -rf /var/lib/apt/lists/*# Copiar arquivos de dependências
 COPY ../pyproject.toml ../poetry.lock* ./
 
 # Instalar dependências Python
