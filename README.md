@@ -73,7 +73,7 @@ Antes de tudo, valide se está tudo configurado:
 poetry install
 
 # Validar ambiente completo
-poetry run python validate_environment.py
+poetry run python scripts/validate_environment.py
 ```
 
 O script verifica:
@@ -87,13 +87,13 @@ O script verifica:
 
 ```bash
 # Subir Prefect Server
-docker-compose up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # Instalar dependências localmente (para registro)
 poetry install
 
 # Registrar flow
-poetry run python register_flows.py
+poetry run python scripts/register_flows.py
 
 # Acessar UI
 http://localhost:8080
@@ -113,20 +113,29 @@ poetry run prefect server start
 poetry run prefect agent local start --label civitas
 
 # Terminal 3: Registrar
-poetry run python register_flows.py
+poetry run python scripts/register_flows.py
 ```
 
 ## Estrutura
 
 ```
-pipelines/
-  brt/extract_load/
-    tasks.py      # Captura, CSV, Upload
-    flows.py      # Orquestração
-    schedules.py  # Agendamentos
-  flows.py        # Registro central
+docker/                # Configurações Docker
+  docker-compose.yml   # Stack completa (Prefect + PostgreSQL)
+  Dockerfile           # Build da imagem
 
-queries/           # DBT (Bronze → Silver → Gold)
+scripts/               # Utilitários
+  test_brt_api.py     # Testar API BRT
+  validate_environment.py  # Validar setup
+  register_flows.py   # Registrar flows no Prefect
+
+pipelines/             # Código Prefect
+  brt/extract_load/
+    tasks.py          # Captura, CSV, Upload
+    flows.py          # Orquestração
+    schedules.py      # Agendamentos
+  flows.py            # Registro central
+
+queries/              # DBT (Bronze → Silver → Gold)
   models/
   macros/
   seeds/

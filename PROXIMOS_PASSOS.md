@@ -44,7 +44,7 @@ Se necessário, adicione as roles (ver `credentials/README.md`)
 poetry install
 
 # Executar validação completa
-poetry run python validate_environment.py
+poetry run python scripts/validate_environment.py
 ```
 
 Este script valida automaticamente:
@@ -60,7 +60,7 @@ Se tudo estiver OK, prossiga para o próximo passo.
 
 ```bash
 # Testar API BRT
-poetry run python test_brt_api.py
+poetry run python scripts/test_brt_api.py
 
 # Deve retornar JSON com dados de ônibus
 ```
@@ -69,10 +69,10 @@ poetry run python test_brt_api.py
 
 ```bash
 # Subir servidor e agent
-docker-compose up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # Verificar logs
-docker-compose logs -f
+docker compose -f docker/docker-compose.yml logs -f
 ```
 
 ### 6. Registrar Flow
@@ -82,7 +82,7 @@ docker-compose logs -f
 poetry install
 
 # Registrar flow no Prefect
-poetry run python register_flows.py
+poetry run python scripts/register_flows.py
 ```
 
 ### 7. Acessar UI
@@ -118,10 +118,10 @@ queries/models/
 
 ```bash
 # Rebuild da imagem
-docker-compose build --no-cache
+docker compose -f docker/docker-compose.yml build --no-cache
 
 # Restart
-docker-compose restart
+docker compose -f docker/docker-compose.yml restart
 ```
 
 ### Erro no DBT
