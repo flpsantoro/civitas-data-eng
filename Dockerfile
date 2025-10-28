@@ -1,36 +1,39 @@
 FROM python:3.10-slim
 
-# Metadados
 LABEL maintainer="Data Engineer Challenge"
 LABEL description="Pipeline BRT - CIVITAS"
-# Nota: Python 3.10 é a última versão compatível com Prefect 1.4.1
 
 # Variáveis de ambiente
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    POETRY_VERSION=1.5.1 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false
 
-# Diretório de trabalho
+# Adicionar Poetry ao PATH
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
 WORKDIR /app
 
-# Copiar requirements
-COPY requirements.txt .
+# Instalar Poetry
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -sSL https://install.python-poetry.org | python3 - && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copiar arquivos de dependências
+COPY pyproject.toml poetry.lock* ./
 
 # Instalar dependências
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+RUN poetry install --no-root --no-dev
 
-# Copiar código da aplicação
+# Copiar código
 COPY pipelines/ ./pipelines/
-COPY dbt/ ./dbt/
-COPY .env.example .env
+COPY queries/ ./queries/
 
-# Criar diretórios necessários
+# Criar diretórios
 RUN mkdir -p data logs credentials
 
-# Expor porta (se necessário)
-EXPOSE 8080
-
-# Comando padrão
-CMD ["prefect", "agent", "start"]
+CMD ["prefect", "agent", "docker", "start"]

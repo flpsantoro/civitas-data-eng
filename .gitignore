@@ -211,10 +211,10 @@ __marimo__/
 prefect.db
 
 # DBT
-dbt/target/
-dbt/dbt_packages/
-dbt/logs/
-dbt/profiles.yml
+queries/target/
+queries/dbt_packages/
+queries/logs/
+queries/profiles.yml
 
 # Data files
 data/*.csv

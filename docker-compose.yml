@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Postgres database for Prefect Server
   postgres:
     image: postgres:16
     container_name: prefect-postgres
@@ -14,14 +13,13 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - prefect-network
+      - prefect
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U prefect"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Prefect Server
   prefect-server:
     image: prefecthq/prefect:1.4.1-python3.10
     container_name: prefect-server
@@ -35,11 +33,10 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - prefect-network
+      - prefect
     volumes:
       - prefect-data:/root/.prefect
 
-  # Prefect Agent (Docker)
   prefect-agent:
     image: prefecthq/prefect:1.4.1-python3.10
     container_name: prefect-agent
@@ -50,14 +47,14 @@ services:
     depends_on:
       - prefect-server
     networks:
-      - prefect-network
+      - prefect
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - prefect-data:/root/.prefect
     restart: unless-stopped
 
 networks:
-  prefect-network:
+  prefect:
     driver: bridge
 
 volumes:

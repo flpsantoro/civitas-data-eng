@@ -40,7 +40,7 @@ models:
 
 # Variáveis
 vars:
-  project_id: "{{ env_var('GCP_PROJECT_ID', 'rj-civitas') }}"
+  project_id: "{{ env_var('GCP_PROJECT_ID') }}"
   dataset_raw: "{{ env_var('BQ_DATASET_RAW', 'brt_raw') }}"
   dataset_staging: "{{ env_var('BQ_DATASET_STAGING', 'brt_staging') }}"
   dataset_gold: "{{ env_var('BQ_DATASET_GOLD', 'brt_gold') }}"

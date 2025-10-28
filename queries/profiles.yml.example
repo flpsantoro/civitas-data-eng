@@ -1,0 +1,25 @@
+# DBT Profiles - Configure antes de usar
+# Copie este arquivo para ~/.dbt/profiles.yml e ajuste os valores
+
+civitas_brt:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth  # Use 'oauth' após executar: gcloud auth application-default login
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: "{{ env_var('BQ_DATASET_RAW', 'brt_raw') }}"
+      threads: 4
+      timeout_seconds: 300
+      location: US
+      priority: interactive
+      
+    prod:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: "{{ env_var('BQ_DATASET_GOLD', 'brt_gold') }}"
+      threads: 8
+      timeout_seconds: 300
+      location: US
+      priority: interactive
