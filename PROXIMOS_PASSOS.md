@@ -37,7 +37,26 @@ gcloud projects get-iam-policy civitas-data-eng \
 
 Se necessário, adicione as roles (ver `credentials/README.md`)
 
-### 3. Testar Conexão
+### 3. Validar Ambiente
+
+```bash
+# Instalar dependências
+poetry install
+
+# Executar validação completa
+poetry run python validate_environment.py
+```
+
+Este script valida automaticamente:
+- Variáveis de ambiente
+- Credenciais GCP
+- Bucket GCS
+- Datasets BigQuery
+- Prefect Server
+
+Se tudo estiver OK, prossiga para o próximo passo.
+
+### 4. Testar Conexão
 
 ```bash
 # Testar API BRT
@@ -46,7 +65,7 @@ poetry run python test_brt_api.py
 # Deve retornar JSON com dados de ônibus
 ```
 
-### 4. Subir Prefect
+### 5. Subir Prefect
 
 ```bash
 # Subir servidor e agent
@@ -56,7 +75,7 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-### 5. Registrar Flow
+### 6. Registrar Flow
 
 ```bash
 # Instalar dependências
@@ -66,7 +85,7 @@ poetry install
 poetry run python register_flows.py
 ```
 
-### 6. Acessar UI
+### 7. Acessar UI
 
 Abra: http://localhost:8080
 

@@ -64,6 +64,25 @@ cp queries/profiles.yml.example ~/.dbt/profiles.yml
 
 ## Execução
 
+### Validar Ambiente
+
+Antes de tudo, valide se está tudo configurado:
+
+```bash
+# Instalar dependências
+poetry install
+
+# Validar ambiente completo
+poetry run python validate_environment.py
+```
+
+O script verifica:
+- ✅ Variáveis de ambiente (.env)
+- ✅ Credenciais GCP
+- ✅ Bucket GCS existe
+- ✅ Datasets BigQuery existem
+- ✅ Prefect Server acessível
+
 ### Opção 1: Com Docker (Recomendado)
 
 ```bash
