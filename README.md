@@ -63,4 +63,29 @@ SELECT COUNT(*) FROM `civitas-data-eng.civitas_gold.dim_brt_linhas`;
 
 ---
 
+## 🔍 Visualizar Dados (Público)
+
+Os dados processados podem ser consultados diretamente no BigQuery:
+
+### Bronze (External Table - 731 registros)
+https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_bronze!3sbrt_gps_external
+
+### Silver (View transformada)
+https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_silver!3sstg_brt_gps
+
+### Gold (Tabelas Analíticas)
+- **Linhas BRT (36):** https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_gold!3sdim_brt_linhas
+- **Veículos (731):** https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_gold!3sdim_brt_veiculos
+- **Viagens (731):** https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_gold!3sfct_brt_viagens
+- **Métricas Horárias (40):** https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_gold!3sagg_metricas_horarias
+
+> **Nota:** Para tornar os datasets públicos, execute no GCP Cloud Shell:
+> ```bash
+> bq update --set_iam_policy <(echo '{"bindings":[{"role":"roles/bigquery.dataViewer","members":["allAuthenticatedUsers"]}]}') civitas-data-eng:civitas_bronze
+> bq update --set_iam_policy <(echo '{"bindings":[{"role":"roles/bigquery.dataViewer","members":["allAuthenticatedUsers"]}]}') civitas-data-eng:civitas_silver
+> bq update --set_iam_policy <(echo '{"bindings":[{"role":"roles/bigquery.dataViewer","members":["allAuthenticatedUsers"]}]}') civitas-data-eng:civitas_gold
+> ```
+
+---
+
 **Desafio:** https://github.com/prefeitura-rio/civitas-desafio-data-eng/
