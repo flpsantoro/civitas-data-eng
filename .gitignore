@@ -220,3 +220,7 @@ data/*.csv
 data/*.json
 data/*.parquet
 !data/.gitkeep
+
+# Google Cloud credentials (security best practice)
+credentials/*.json
+!credentials/README.md

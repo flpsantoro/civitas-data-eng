@@ -7,10 +7,13 @@ Pipeline de dados automatizado para o desafio [Prefeitura Rio - Civitas Data Eng
 ## 🚀 Como Executar
 
 ### 1. Configurar credenciais GCP
+
+**Para avaliadores**: Solicite o arquivo de credenciais ao autor e salve em:
 ```bash
-# Copiar arquivo JSON para:
-credentials/civitas-data-eng-*.json
+credentials/civitas-data-eng-8feab1c31a9a.json
 ```
+
+**Alternativa**: Crie sua própria service account (veja `credentials/README.md`)
 
 ### 2. Subir container
 ```bash
