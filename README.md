@@ -131,7 +131,7 @@ LIMIT 10;
 
 **Felipe Santoro Alcantara**  
 📧 santoro.felipe@gmail.com  
-🔗 [GitHub](https://github.com/flpsantoro) | [LinkedIn](https://linkedin.com/in/felipesantoro)
+🔗 [GitHub](https://github.com/flpsantoro) | [LinkedIn](https://www.linkedin.com/in/felipesantoroalcantara/)
 
 ---
 
