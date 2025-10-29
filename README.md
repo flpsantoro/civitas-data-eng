@@ -63,28 +63,39 @@ SELECT COUNT(*) FROM `civitas-data-eng.civitas_gold.dim_brt_linhas`;
 
 ---
 
-## 🔍 Visualizar Dados (Público)
+## � Resultados (BigQuery)
 
-Os dados processados podem ser consultados diretamente no BigQuery:
+Para visualizar os dados processados, utilize as credenciais incluídas no repositório (`credentials/civitas-data-eng-8feab1c31a9a.json`).
 
-### Bronze (External Table - 731 registros)
-https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_bronze!3sbrt_gps_external
+**Projeto GCP:** `civitas-data-eng`
 
-### Silver (View transformada)
-https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_silver!3sstg_brt_gps
+### Tabelas Criadas
 
-### Gold (Tabelas Analíticas)
-- **Linhas BRT (36):** https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_gold!3sdim_brt_linhas
-- **Veículos (731):** https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_gold!3sdim_brt_veiculos
-- **Viagens (731):** https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_gold!3sfct_brt_viagens
-- **Métricas Horárias (40):** https://console.cloud.google.com/bigquery?project=civitas-data-eng&ws=!1m5!1m4!4m3!1scivitas-data-eng!2scivitas_gold!3sagg_metricas_horarias
+| Layer | Dataset | Tabela | Registros | Descrição |
+|-------|---------|--------|-----------|-----------|
+| 🥉 Bronze | `civitas_bronze` | `brt_gps_external` | 731 | External Table (CSV no GCS) |
+| 🥈 Silver | `civitas_silver` | `stg_brt_gps` | 731 | View com transformações |
+| 🥇 Gold | `civitas_gold` | `dim_brt_linhas` | 36 | Dimensão de linhas BRT |
+| 🥇 Gold | `civitas_gold` | `dim_brt_veiculos` | 731 | Dimensão de veículos |
+| 🥇 Gold | `civitas_gold` | `fct_brt_viagens` | 731 | Fato de viagens |
+| 🥇 Gold | `civitas_gold` | `agg_metricas_horarias` | 40 | Métricas agregadas |
 
-> **Nota:** Para tornar os datasets públicos, execute no GCP Cloud Shell:
-> ```bash
-> bq update --set_iam_policy <(echo '{"bindings":[{"role":"roles/bigquery.dataViewer","members":["allAuthenticatedUsers"]}]}') civitas-data-eng:civitas_bronze
-> bq update --set_iam_policy <(echo '{"bindings":[{"role":"roles/bigquery.dataViewer","members":["allAuthenticatedUsers"]}]}') civitas-data-eng:civitas_silver
-> bq update --set_iam_policy <(echo '{"bindings":[{"role":"roles/bigquery.dataViewer","members":["allAuthenticatedUsers"]}]}') civitas-data-eng:civitas_gold
-> ```
+### Queries de Exemplo
+
+```sql
+-- Top 5 linhas com mais veículos
+SELECT linha, COUNT(*) as total_veiculos
+FROM `civitas-data-eng.civitas_gold.dim_brt_veiculos`
+GROUP BY linha
+ORDER BY total_veiculos DESC
+LIMIT 5;
+
+-- Velocidade média por linha
+SELECT linha, ROUND(AVG(velocidade_media_kmh), 2) as vel_media
+FROM `civitas-data-eng.civitas_gold.agg_metricas_horarias`
+GROUP BY linha
+ORDER BY vel_media DESC;
+```
 
 ---
 
