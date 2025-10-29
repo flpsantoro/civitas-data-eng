@@ -71,8 +71,15 @@ docker exec civitas-prefect-agent python -m pipelines.brt.extract_load.flows
 ## ✅ Validação
 
 ```sql
+-- Bronze: External Table
 SELECT COUNT(*) FROM `civitas-data-eng.civitas_bronze.brt_gps_external`;
+
+-- Silver: View transformada
+SELECT COUNT(*) FROM `civitas-data-eng.civitas_silver.stg_brt_gps`;
+
+-- Gold: Tabelas analíticas
 SELECT COUNT(*) FROM `civitas-data-eng.civitas_gold.dim_brt_linhas`;
+SELECT COUNT(*) FROM `civitas-data-eng.civitas_gold.dim_brt_veiculos`;
 ```
 
 ---
@@ -97,19 +104,26 @@ Para visualizar os dados processados, utilize as credenciais incluídas no repos
 ### Queries de Exemplo
 
 ```sql
--- Top 5 linhas com mais veículos
-SELECT linha, COUNT(*) as total_veiculos
-FROM `civitas-data-eng.civitas_gold.dim_brt_veiculos`
-GROUP BY linha
-ORDER BY total_veiculos DESC
-LIMIT 5;
-
--- Velocidade média por linha
-SELECT linha, ROUND(AVG(velocidade_media_kmh), 2) as vel_media
-FROM `civitas-data-eng.civitas_gold.agg_metricas_horarias`
-GROUP BY linha
-ORDER BY vel_media DESC;
+-- Análise integrada: Linhas BRT com viagens e velocidades
+SELECT 
+    l.codigo_linha,
+    l.total_veiculos,
+    l.total_viagens,
+    ROUND(l.velocidade_media, 2) as vel_media_linha,
+    COUNT(DISTINCT v.id_viagem) as viagens_detalhadas,
+    ROUND(AVG(v.velocidade_media), 2) as vel_media_viagens
+FROM `civitas-data-eng.civitas_gold.dim_brt_linhas` l
+LEFT JOIN `civitas-data-eng.civitas_gold.fct_brt_viagens` v 
+    ON l.codigo_linha = v.linha_brt
+GROUP BY l.codigo_linha, l.total_veiculos, l.total_viagens, l.velocidade_media
+ORDER BY l.total_viagens DESC
+LIMIT 10;
 ```
+
+**Insights da query:**
+- Combina dimensões (linhas), fatos (viagens) e agregações (métricas horárias)
+- Mostra quais linhas têm mais viagens e suas velocidades médias
+- Demonstra a arquitetura Medallion em ação (Gold como camada analítica)
 
 ---
 
