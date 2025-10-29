@@ -224,3 +224,6 @@ data/*.parquet
 # Google Cloud credentials (security best practice)
 credentials/*.json
 !credentials/README.md
+
+# Manual de entrevista (não versionar)
+MANUAL_ENTREVISTA.md

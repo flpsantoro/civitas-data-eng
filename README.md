@@ -33,7 +33,15 @@ docker exec civitas-prefect-agent python -m pipelines.brt.extract_load.flows
 
 ---
 
-## 📦 Entregáveis
+## � Arquitetura do Pipeline
+
+![Diagrama do Pipeline](diagrama.png)
+
+**Fluxo**: API Data.Rio → CSV Local → GCS → Bronze (External Table) → Silver (DBT) → Gold (4 tabelas analíticas)
+
+---
+
+## �📦 Entregáveis
 
 ### Pipeline Prefect
 - **Localização:** `pipelines/brt/extract_load/`
