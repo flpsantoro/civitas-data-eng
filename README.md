@@ -2,13 +2,16 @@
 
 Pipeline de dados automatizado para o desafio [Prefeitura Rio - Civitas Data Engineering](https://github.com/prefeitura-rio/civitas-desafio-data-eng/).
 
+**Autor:** Felipe Santoro Alcantara  
+**Contato:** santoro.felipe@gmail.com
+
 ---
 
 ## 🚀 Como Executar
 
 ### 1. Configurar credenciais GCP
 
-**Para avaliadores**: Solicite o arquivo de credenciais ao autor e salve em:
+**Para avaliadores**: Solicite o arquivo de credenciais ao autor (santoro.felipe@gmail.com) e salve em:
 ```bash
 credentials/civitas-data-eng-8feab1c31a9a.json
 ```
@@ -99,6 +102,14 @@ FROM `civitas-data-eng.civitas_gold.agg_metricas_horarias`
 GROUP BY linha
 ORDER BY vel_media DESC;
 ```
+
+---
+
+## 👤 Autor
+
+**Felipe Santoro Alcantara**  
+📧 santoro.felipe@gmail.com  
+🔗 [GitHub](https://github.com/flpsantoro) | [LinkedIn](https://linkedin.com/in/felipesantoro)
 
 ---
 
