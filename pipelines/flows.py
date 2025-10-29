@@ -6,7 +6,7 @@ Importar este arquivo registra todos os flows automaticamente
 # Importar flows
 from pipelines.brt.extract_load.flows import brt_extract_load_flow
 
-# Lista de todos os flows disponíveis
+# Lista de todos os flows disponveis
 ALL_FLOWS = [
     brt_extract_load_flow,
 ]

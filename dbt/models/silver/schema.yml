@@ -1,0 +1,111 @@
+version: 2
+
+models:
+  - name: stg_brt_gps
+    description: "Staging layer - Dados de GPS do BRT limpos e padronizados"
+    
+    columns:
+      - name: id_registro
+        description: "Hash único do registro (surrogate key)"
+        tests:
+          - unique
+          - not_null
+      
+      - name: codigo_veiculo
+        description: "Código único do veículo (padronizado)"
+        tests:
+          - not_null
+      
+      - name: placa_veiculo
+        description: "Placa do veículo (uppercase, trimmed)"
+        tests:
+          - not_null
+      
+      - name: linha_brt
+        description: "Linha do BRT"
+      
+      - name: latitude
+        description: "Latitude (6 decimais, validada)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: -90
+              max_value: 90
+      
+      - name: longitude
+        description: "Longitude (6 decimais, validada)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: -180
+              max_value: 180
+      
+      - name: data_hora_gps
+        description: "Timestamp da captura GPS"
+        tests:
+          - not_null
+      
+      - name: data_hora_captura
+        description: "Timestamp da captura pela pipeline"
+        tests:
+          - not_null
+      
+      - name: velocidade_kmh
+        description: "Velocidade em km/h (2 decimais, validada)"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 150
+      
+      - name: sentido_trajeto
+        description: "Sentido do trajeto (padronizado)"
+        tests:
+          - accepted_values:
+              values: ['IDA', 'VOLTA', 'CIRCULAR', 'DESCONHECIDO']
+      
+      - name: status_ignicao
+        description: "Status da ignição (padronizado)"
+        tests:
+          - accepted_values:
+              values: ['LIGADO', 'DESLIGADO', 'DESCONHECIDO']
+      
+      - name: capacidade_total
+        description: "Capacidade total de passageiros (em pé + sentados)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 300
+      
+      - name: data_gps
+        description: "Data da captura GPS (DATE)"
+        tests:
+          - not_null
+      
+      - name: hora_gps
+        description: "Hora da captura GPS (0-23)"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 23
+      
+      - name: dia_semana
+        description: "Dia da semana (1=Domingo, 7=Sábado)"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 7
+      
+      - name: is_valid_coordinates
+        description: "Flag: coordenadas válidas (true/false permitidos)"
+        tests:
+          - not_null
+          # Removido accepted_values - permite true/false
+          # Registros com is_valid_coordinates=false são filtrados em Gold
+      
+      - name: is_valid_velocity
+        description: "Flag: velocidade válida (true/false permitidos)"
+        tests:
+          - not_null
+          # Removido accepted_values - permite true/false
+          # Registros com is_valid_velocity=false são filtrados em Gold

@@ -1,5 +1,5 @@
 """
-Utilitários para interação com Google Cloud Platform
+Utilitrios para interao com Google Cloud Platform
 """
 from google.cloud import storage, bigquery
 from typing import Optional

@@ -1,0 +1,142 @@
+version: 2
+
+models:
+  - name: fct_brt_viagens
+    description: "Fact table com métricas agregadas de viagens BRT (por veículo, linha, data, hora)"
+    
+    columns:
+      - name: id_viagem
+        description: "Surrogate key única da viagem"
+        tests:
+          - unique
+          - not_null
+      
+      - name: codigo_veiculo
+        description: "Código do veículo"
+        tests:
+          - not_null
+      
+      - name: linha_brt
+        description: "Linha BRT"
+        tests:
+          - not_null
+      
+      - name: data_viagem
+        description: "Data da viagem"
+        tests:
+          - not_null
+      
+      - name: duracao_minutos
+        description: "Duração da viagem em minutos"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 1440
+      
+      - name: total_registros_gps
+        description: "Total de pontos GPS capturados na viagem"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 2
+      
+      - name: velocidade_media
+        description: "Velocidade média da viagem (km/h)"
+      
+      - name: distancia_percorrida_km
+        description: "Distância percorrida calculada pelo hodômetro"
+
+  - name: dim_brt_linhas
+    description: "Dimension table com informações sobre linhas BRT"
+    
+    columns:
+      - name: id_linha
+        description: "Surrogate key única da linha"
+        tests:
+          - unique
+          - not_null
+      
+      - name: codigo_linha
+        description: "Código da linha BRT"
+        tests:
+          - unique
+          - not_null
+      
+      - name: total_veiculos
+        description: "Total de veículos distintos que operam a linha"
+        tests:
+          - not_null
+      
+      - name: classificacao_demanda
+        description: "Classificação da linha por demanda"
+        tests:
+          - accepted_values:
+              values: ['ALTA_DEMANDA', 'MEDIA_DEMANDA', 'BAIXA_DEMANDA']
+
+  - name: dim_brt_veiculos
+    description: "Dimension table com informações sobre veículos BRT"
+    
+    columns:
+      - name: id_veiculo
+        description: "Surrogate key única do veículo"
+        tests:
+          - unique
+          - not_null
+      
+      - name: codigo_veiculo
+        description: "Código do veículo"
+        tests:
+          - unique
+          - not_null
+      
+      - name: placa_veiculo
+        description: "Placa do veículo"
+        tests:
+          - unique
+          - not_null
+      
+      - name: dias_ativos
+        description: "Número de dias com registros GPS"
+        tests:
+          - not_null
+      
+      - name: classificacao_atividade
+        description: "Classificação do veículo por nível de atividade"
+        tests:
+          - accepted_values:
+              values: ['ALTA_ATIVIDADE', 'MEDIA_ATIVIDADE', 'BAIXA_ATIVIDADE']
+
+  - name: agg_metricas_horarias
+    description: "Aggregate table com métricas operacionais por hora"
+    
+    columns:
+      - name: id_metrica_hora
+        description: "Surrogate key única da métrica horária"
+        tests:
+          - unique
+          - not_null
+      
+      - name: data_analise
+        description: "Data da análise"
+        tests:
+          - not_null
+      
+      - name: hora_analise
+        description: "Hora da análise (0-23)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 23
+      
+      - name: periodo_dia
+        description: "Período do dia"
+        tests:
+          - accepted_values:
+              values: ['PICO_MANHA', 'FORA_PICO', 'PICO_TARDE', 'NOITE', 'MADRUGADA']
+      
+      - name: total_veiculos_ativos
+        description: "Total de veículos ativos na hora"
+        tests:
+          - not_null

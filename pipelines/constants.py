@@ -17,7 +17,7 @@ class Constants(Enum):
     # API BRT
     BRT_API_URL = "https://dados.mobilidade.rio/gps/brt"
     
-    # Configurações de execução
+    # Configuraes de execuo
     CAPTURE_INTERVAL_MINUTES = 1
     CSV_GENERATION_MINUTES = 10
     

@@ -1,3 +1,3 @@
 """
-Utilitários compartilhados entre pipelines
+Utilitrios compartilhados entre pipelines
 """

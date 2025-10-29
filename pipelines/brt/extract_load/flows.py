@@ -1,5 +1,5 @@
 """
-Flow de extração e carga de dados do BRT
+Flow de extrao e carga de dados do BRT
 """
 from datetime import datetime, timedelta
 import os
@@ -16,7 +16,12 @@ from pipelines.brt.extract_load.tasks import (
     generate_csv,
     upload_csv_to_gcs,
     cleanup_local_file,
-    trigger_dbt_run
+    trigger_dbt_run,
+    cleanup_all_data,
+    validate_layer,
+    clean_old_csvs,
+    create_bronze_external_table,
+    create_gold_tables
 )
 from pipelines.constants import Constants
 
@@ -24,13 +29,13 @@ from pipelines.constants import Constants
 logger = get_logger()
 
 
-# Configuração do Flow
+# Configurao do Flow
 with Flow(
     name="BRT: Extract and Load GPS Data"
 ) as brt_extract_load_flow:
     
     # =========================================================================
-    # PARÂMETROS DO FLOW
+    # PARMETROS DO FLOW
     # =========================================================================
     
     # API Configuration
@@ -68,28 +73,9 @@ with Flow(
     )
     
     # Pipeline Configuration
-    capture_interval_minutes = Parameter(
-        "capture_interval_minutes",
-        default=Constants.CAPTURE_INTERVAL_MINUTES.value,
-        required=False
-    )
-    
-    csv_generation_minutes = Parameter(
-        "csv_generation_minutes",
-        default=Constants.CSV_GENERATION_MINUTES.value,
-        required=False
-    )
-    
     keep_local_file = Parameter(
         "keep_local_file",
         default=True,
-        required=False
-    )
-    
-    # DBT Configuration
-    materialize_dbt = Parameter(
-        "materialize_dbt",
-        default=False,
         required=False
     )
     
@@ -100,18 +86,25 @@ with Flow(
     )
     
     # =========================================================================
-    # FLOW LOGIC
+    # FLOW LOGIC - PIPELINE AUTOMATIZADO COM LIMPEZA E VALIDAÇÕES
     # =========================================================================
     
-    # Task 1: Capturar dados da API
-    gps_data = fetch_brt_gps_data(api_url=api_url)
+    # Task 0: LIMPEZA COMPLETA - Remove todos CSVs locais e do GCS
+    cleanup_all = cleanup_all_data(
+        bucket_name=bucket_name,
+        local_data_dir=output_dir
+    )
     
-    # Task 2: Acumular dados (para captura de 10 minutos)
-    # Nota: Em produção, usaria um mecanismo de estado persistente
-    # Para simplificação do desafio, vamos gerar CSV a cada execução
+    # Task 1: Capturar dados da API
+    gps_data = fetch_brt_gps_data(
+        api_url=api_url,
+        upstream_tasks=[cleanup_all]
+    )
+    
+    # Task 2: Acumular dados
     accumulated = accumulate_data(
         current_data=gps_data,
-        accumulated_data=None  # Implementar persistência em produção
+        accumulated_data=None
     )
     
     # Task 3: Gerar arquivo CSV
@@ -130,23 +123,89 @@ with Flow(
         upstream_tasks=[csv_path]
     )
     
-    # Task 5: Cleanup (opcional)
-    cleanup = cleanup_local_file(
-        filepath=csv_path,
-        keep_file=keep_local_file,
+    # Task 5: Criar Bronze External Table
+    bronze_table = create_bronze_external_table(
+        project_id="civitas-data-eng",
+        dataset_id="civitas_bronze",
+        table_id="brt_gps_external",
+        gcs_uri="gs://civitas-brt-data/bronze/brt_gps/*.csv",
         upstream_tasks=[gcs_uri]
     )
     
-    # Task 6: Trigger DBT (condicional)
+    # Task 6: VALIDAÇÃO Bronze
+    validate_bronze = validate_layer(
+        project_id="civitas-data-eng",
+        layer_name="Bronze",
+        table_id="civitas_bronze.brt_gps_external",
+        min_records=1,
+        upstream_tasks=[bronze_table]
+    )
+    
+    # Task 7: Trigger DBT para Silver
     dbt_result = trigger_dbt_run(
         dataset_id=dataset_id,
-        materialize=materialize_dbt,
-        upstream_tasks=[gcs_uri]
+        materialize=True,
+        upstream_tasks=[validate_bronze]
+    )
+    
+    # Task 8: VALIDAÇÃO Silver
+    validate_silver = validate_layer(
+        project_id="civitas-data-eng",
+        layer_name="Silver",
+        table_id="civitas_silver.stg_brt_gps",
+        min_records=1,
+        upstream_tasks=[dbt_result]
+    )
+    
+    # Task 9: Criar Gold Tables
+    gold_tables = create_gold_tables(
+        project_id="civitas-data-eng",
+        upstream_tasks=[validate_silver]
+    )
+    
+    # Task 10: VALIDAÇÕES Gold (4 tabelas)
+    validate_gold_linhas = validate_layer(
+        project_id="civitas-data-eng",
+        layer_name="Gold - Linhas",
+        table_id="civitas_gold.dim_brt_linhas",
+        min_records=1,
+        upstream_tasks=[gold_tables]
+    )
+    
+    validate_gold_veiculos = validate_layer(
+        project_id="civitas-data-eng",
+        layer_name="Gold - Veículos",
+        table_id="civitas_gold.dim_brt_veiculos",
+        min_records=1,
+        upstream_tasks=[gold_tables]
+    )
+    
+    validate_gold_viagens = validate_layer(
+        project_id="civitas-data-eng",
+        layer_name="Gold - Viagens",
+        table_id="civitas_gold.fct_brt_viagens",
+        min_records=1,
+        upstream_tasks=[gold_tables]
+    )
+    
+    validate_gold_metricas = validate_layer(
+        project_id="civitas-data-eng",
+        layer_name="Gold - Métricas",
+        table_id="civitas_gold.agg_metricas_horarias",
+        min_records=1,
+        upstream_tasks=[gold_tables]
+    )
+    
+    # Task 11: Cleanup local (após validações)
+    cleanup = cleanup_local_file(
+        filepath=csv_path,
+        keep_file=keep_local_file,
+        upstream_tasks=[validate_gold_metricas]
     )
 
 
 # =========================================================================
-# CONFIGURAÇÃO DE STORAGE E RUN
+# CONFIGURAO DE STORAGE E RUN
 # =========================================================================
 
 # Storage local (para desenvolvimento)
@@ -177,21 +236,20 @@ brt_extract_load_flow.metadata = {
 
 if __name__ == "__main__":
     # Teste local do flow
-    logger.info("🚀 Executando flow BRT Extract and Load localmente...")
+    logger.info(" Executando flow BRT Extract and Load localmente...")
     
-    # Executar com parâmetros padrão
+    # Executar com parmetros padro
     state = brt_extract_load_flow.run(
         parameters={
             "api_url": Constants.BRT_API_URL.value,
-            "keep_local_file": True,
-            "materialize_dbt": False
+            "keep_local_file": True
         }
     )
     
-    logger.info(f"📊 Status final: {state}")
+    logger.info(f" Status final: {state}")
     
     if state.is_successful():
-        logger.info("✅ Flow executado com sucesso!")
+        logger.info(" Flow executado com sucesso!")
     else:
-        logger.error("❌ Flow falhou!")
+        logger.error(" Flow falhou!")
         logger.error(f"Erro: {state.message}")

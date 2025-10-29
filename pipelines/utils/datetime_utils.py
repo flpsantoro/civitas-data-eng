@@ -1,5 +1,5 @@
 """
-Utilitários para manipulação de datas e timestamps
+Utilitrios para manipulao de datas e timestamps
 """
 from datetime import datetime, timezone
 from typing import Optional
@@ -11,7 +11,7 @@ def get_current_timestamp(
     format_str: Optional[str] = None
 ) -> str:
     """
-    Retorna timestamp atual em um timezone específico.
+    Retorna timestamp atual em um timezone especfico.
     
     Args:
         tz_name: Nome do timezone (ex: 'America/Sao_Paulo', 'UTC')
@@ -38,7 +38,7 @@ def parse_timestamp(
     
     Args:
         timestamp_str: String com timestamp
-        input_format: Formato de entrada (opcional, tenta ISO se não fornecido)
+        input_format: Formato de entrada (opcional, tenta ISO se no fornecido)
         
     Returns:
         Objeto datetime
@@ -64,7 +64,7 @@ def parse_timestamp(
             except ValueError:
                 continue
         
-        raise ValueError(f"Não foi possível parsear timestamp: {timestamp_str}")
+        raise ValueError(f"No foi possvel parsear timestamp: {timestamp_str}")
 
 
 def generate_partition_path(
@@ -78,7 +78,7 @@ def generate_partition_path(
     Args:
         base_path: Caminho base
         timestamp: Timestamp para particionamento (usa now() se None)
-        partition_by: Tipo de partição ('date', 'hour', 'month')
+        partition_by: Tipo de partio ('date', 'hour', 'month')
         
     Returns:
         Caminho particionado (ex: base_path/year=2025/month=10/day=28)
@@ -101,11 +101,11 @@ def get_time_window(
     reference_time: Optional[datetime] = None
 ) -> tuple:
     """
-    Retorna janela de tempo (início, fim).
+    Retorna janela de tempo (incio, fim).
     
     Args:
         minutes: Tamanho da janela em minutos
-        reference_time: Tempo de referência (usa now() se None)
+        reference_time: Tempo de referncia (usa now() se None)
         
     Returns:
         Tupla (start_time, end_time)

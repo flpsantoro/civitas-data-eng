@@ -1,0 +1,25 @@
+# DBT Profiles for BigQuery connection
+civitas_brt:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: civitas-data-eng
+      dataset: civitas_bronze # Default dataset (bronze)
+      threads: 4
+      timeout_seconds: 300
+      location: us-east1
+      priority: interactive
+      keyfile: /app/credentials/civitas-data-eng-8feab1c31a9a.json
+      
+    prod:
+      type: bigquery
+      method: service-account
+      project: civitas-data-eng
+      dataset: civitas_bronze
+      threads: 8
+      timeout_seconds: 600
+      location: us-east1
+      priority: interactive
+      keyfile: /app/credentials/civitas-data-eng-8feab1c31a9a.json

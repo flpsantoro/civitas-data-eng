@@ -1,4 +1,4 @@
-FROM python:3.10-slim as base
+FROM python:3.11-slim as base
 
 LABEL maintainer="Data Engineer Challenge"
 LABEL description="Pipeline BRT - CIVITAS"
@@ -45,18 +45,18 @@ RUN poetry install --no-root --no-dev
 
 # Copiar código
 COPY pipelines/ ./pipelines/
-COPY queries/ ./queries/
-COPY scripts/ ./scripts/
+COPY dbt/ ./dbt/
 COPY .env* ./
 
 # Criar diretórios
 RUN mkdir -p data logs credentials
 
-# Imagem para Prefect Agent
-FROM base as agent
-CMD ["prefect", "agent", "docker", "start", "--label", "civitas"]
+# Instalar DBT com adaptador BigQuery
+RUN pip install --no-cache-dir \
+    dbt-core==1.7.0 \
+    dbt-bigquery==1.7.0 \
+    'google-cloud-bigquery<3.11.0'
 
-# Imagem para scripts utilitários
-FROM base as cli
-ENTRYPOINT ["python"]
-CMD ["scripts/validate_environment.py"]
+# Prefect Agent
+FROM base as agent
+CMD ["tail", "-f", "/dev/null"]

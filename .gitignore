@@ -211,17 +211,12 @@ __marimo__/
 prefect.db
 
 # DBT
-queries/target/
-queries/dbt_packages/
-queries/logs/
-queries/profiles.yml
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
 
 # Data files
 data/*.csv
 data/*.json
 data/*.parquet
 !data/.gitkeep
-
-# Google Cloud credentials
-credentials/
-service-account*.json

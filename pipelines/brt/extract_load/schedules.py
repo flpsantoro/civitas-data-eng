@@ -34,10 +34,10 @@ brt_minute_schedule = Schedule(
 
 
 # =========================================================================
-# SCHEDULE: Captura com Materialização DBT (a cada 10 minutos)
+# SCHEDULE: Captura com Materializao DBT (a cada 10 minutos)
 # =========================================================================
 
-# Schedule para captura + materialização DBT a cada 10 minutos
+# Schedule para captura + materializao DBT a cada 10 minutos
 brt_with_dbt_schedule = Schedule(
     clocks=[
         IntervalClock(
@@ -48,7 +48,7 @@ brt_with_dbt_schedule = Schedule(
                 "gcs_destination_prefix": "bronze/brt_gps",
                 "output_dir": "./data",
                 "keep_local_file": True,
-                "materialize_dbt": True,  # Ativa DBT após upload
+                "materialize_dbt": True,  # Ativa DBT aps upload
                 "dataset_id": Constants.BQ_DATASET_RAW.value
             },
             labels=["civitas", "brt", "scheduled", "dbt"]

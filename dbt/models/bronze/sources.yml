@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+  - name: gcs_bronze
+    description: "External tables pointing to CSV files in GCS bucket"
+    schema: civitas_bronze
+    
+    tables:
+      - name: brt_gps_external
+        description: "Raw BRT GPS data from Rio de Janeiro API"
+        external:
+          location: "gs://{{ var('gcs_bucket') }}/{{ var('gcs_bronze_prefix') }}/*.csv"
+          options:
+            format: CSV
+            skip_leading_rows: 1
+            field_delimiter: ","
+            allow_quoted_newlines: true
+            allow_jagged_rows: false
+          
+          columns:
+            - name: codigo
+              data_type: string
+            - name: placa
+              data_type: string
+            - name: linha
+              data_type: string
+            - name: latitude
+              data_type: float64
+            - name: longitude
+              data_type: float64
+            - name: dataHora
+              data_type: string
+            - name: velocidade
+              data_type: float64
+            - name: id_migracao_trajeto
+              data_type: string
+            - name: sentido
+              data_type: string
+            - name: trajeto
+              data_type: string
+            - name: hodometro
+              data_type: float64
+            - name: direcao
+              data_type: string
+            - name: ignicao
+              data_type: string
+            - name: capacidadePeVeiculo
+              data_type: int64
+            - name: capacidadeSentadoVeiculo
+              data_type: int64
+            - name: timestamp_captura
+              data_type: string
+
+        columns:
+          - name: codigo
+            description: "Código único do veículo"
+          - name: placa
+            description: "Placa do veículo BRT"
+          - name: dataHora
+            description: "Data e hora da captura GPS"
+          - name: timestamp_captura
+            description: "Timestamp da captura pela pipeline"
+

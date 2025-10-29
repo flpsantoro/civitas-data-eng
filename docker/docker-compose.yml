@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  # Prefect Agent (executa flows)
+  # Prefect Agent (modo Core - sem backend)
   prefect-agent:
     build:
       context: ..
@@ -9,45 +7,17 @@ services:
       target: agent
     container_name: civitas-prefect-agent
     environment:
-      PREFECT__BACKEND: "core"
-      PREFECT__CLOUD__AGENT__LABELS: '["civitas"]'
+      # Prefect Core mode (execução local, sem servidor)
       GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/civitas-data-eng-8feab1c31a9a.json
     env_file:
       - ../.env
-    networks:
-      - prefect
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../credentials:/app/credentials:ro
       - ../data:/app/data
       - prefect-data:/root/.prefect
     restart: unless-stopped
-    command: bash -c "while true; do sleep 3600; done"
-
-  # CLI utilitário (scripts)
-  cli:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      target: cli
-    container_name: civitas-cli
-    environment:
-      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/civitas-data-eng-8feab1c31a9a.json
-    env_file:
-      - ../.env
-    networks:
-      - prefect
-    volumes:
-      - ../credentials:/app/credentials:ro
-      - ../data:/app/data
-      - ../queries:/app/queries
-    profiles:
-      - tools
-    command: /bin/bash
-
-networks:
-  prefect:
-    driver: bridge
+    command: tail -f /dev/null
 
 volumes:
   prefect-data:

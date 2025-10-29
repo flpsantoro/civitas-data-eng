@@ -1,0 +1,74 @@
+# DBT Project Configuration
+name: 'civitas_brt'
+version: '1.0.0'
+config-version: 2
+
+# Project profile (uses profiles.yml)
+profile: 'civitas_brt'
+
+# Directories
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Model configurations
+models:
+  civitas_brt:
+    # Bronze layer - External tables (raw data from GCS)
+    bronze:
+      +materialized: external
+      +location: us-east1
+      +schema: civitas_bronze
+      +tags:
+        - "bronze"
+        - "raw"
+    
+    # Silver layer - Cleaned and standardized
+    silver:
+      +materialized: view
+      +schema: civitas_silver
+      +tags:
+        - "silver"
+        - "staging"
+    
+    # Gold layer - Business aggregations
+    gold:
+      +materialized: table
+      +schema: civitas_gold
+      +tags:
+        - "gold"
+        - "marts"
+
+# Seeds configuration
+seeds:
+  civitas_brt:
+    +schema: civitas_bronze
+
+# Snapshots configuration  
+snapshots:
+  civitas_brt:
+    +target_schema: civitas_bronze
+    +strategy: timestamp
+    +unique_key: codigo
+    +updated_at: dataHora
+
+# Tests
+tests:
+  civitas_brt:
+    +severity: warn
+    +store_failures: true
+    +schema: civitas_dbt_test_failures
+
+# Variables
+vars:
+  gcs_bucket: "civitas-brt-data"
+  gcs_bronze_prefix: "bronze/brt_gps"
+  project_id: "civitas-data-eng"

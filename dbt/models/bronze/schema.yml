@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: brt_gps_external
+    description: "Tabela externa apontando para dados brutos de GPS do BRT no GCS"
+    
+    columns:
+      - name: codigo
+        description: "Código único do veículo"
+        tests:
+          - not_null
+      
+      - name: placa
+        description: "Placa do veículo BRT"
+        tests:
+          - not_null
+      
+      - name: linha
+        description: "Linha do BRT"
+      
+      - name: latitude
+        description: "Latitude da localização GPS (-90 a 90)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: -90
+              max_value: 90
+      
+      - name: longitude
+        description: "Longitude da localização GPS (-180 a 180)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: -180
+              max_value: 180
+      
+      - name: dataHora
+        description: "Data e hora da captura GPS"
+        tests:
+          - not_null
+      
+      - name: velocidade
+        description: "Velocidade do veículo (km/h)"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 150
+              strictly: false
+      
+      - name: sentido
+        description: "Sentido do trajeto (I=Ida, V=Volta)"
+        tests:
+          - accepted_values:
+              values: ['I', 'V', 'C']
+              quote: true
+      
+      - name: ignicao
+        description: "Estado da ignição (L=Ligado, D=Desligado)"
+        tests:
+          - accepted_values:
+              values: ['L', 'D']
+              quote: true
+      
+      - name: timestamp_captura
+        description: "Timestamp da captura pela pipeline"
+        tests:
+          - not_null
